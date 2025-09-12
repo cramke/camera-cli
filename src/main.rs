@@ -54,41 +54,19 @@ fn color_enabled(cli_allows: bool) -> bool {
     std::env::var_os("NO_COLOR").is_none()
 }
 
-fn print_results_table(title: &str, rows: &[(&str, f64)], use_color: bool) {
+fn print_results_table(title: &str, rows: &[(&str, f64)], _use_color: bool) {
     let label_width = rows.iter().map(|(l, _)| l.len()).max().unwrap_or(8).max(10);
     let num_width = 12; // room for digits + decimals + unit
     let total_width = 2 + label_width + 3 + num_width + 2; // borders + padding
 
-    let mut hr = |ch: char| -> String { std::iter::repeat(ch).take(total_width).collect() };
+    let hr = |ch: char| -> String { std::iter::repeat_n(ch, total_width).collect() };
 
     // Optional color helpers
     let style_title = |s: &str| {
-        if use_color {
-            #[cfg(feature = "color")]
-            {
-                s.bold().to_string()
-            }
-            #[cfg(not(feature = "color"))]
-            {
-                s.to_string()
-            }
-        } else {
-            s.to_string()
-        }
+        s.to_string()
     };
     let style_label = |s: &str| {
-        if use_color {
-            #[cfg(feature = "color")]
-            {
-                s.bold().to_string()
-            }
-            #[cfg(not(feature = "color"))]
-            {
-                s.to_string()
-            }
-        } else {
-            s.to_string()
-        }
+        s.to_string()
     };
 
     println!("{}", hr('═'));
