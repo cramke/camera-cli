@@ -62,12 +62,8 @@ fn print_results_table(title: &str, rows: &[(&str, f64)], _use_color: bool) {
     let hr = |ch: char| -> String { std::iter::repeat_n(ch, total_width).collect() };
 
     // Optional color helpers
-    let style_title = |s: &str| {
-        s.to_string()
-    };
-    let style_label = |s: &str| {
-        s.to_string()
-    };
+    let style_title = |s: &str| s.to_string();
+    let style_label = |s: &str| s.to_string();
 
     println!("{}", hr('═'));
     println!(
