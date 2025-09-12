@@ -20,13 +20,10 @@ struct Args {
     no_color: bool,
 }
 
-
 fn main() {
     let args = Args::parse();
 
-    if let (Some(pixels), Some(angle), Some(_distance)) =
-        (args.pixels, args.angle, args.distance)
-    {
+    if let (Some(pixels), Some(angle), Some(_distance)) = (args.pixels, args.angle, args.distance) {
         let detection = camera::detection_distance(angle, pixels);
         let identification = camera::identification_distance(angle, pixels);
         let recognition = camera::recognition_distance(angle, pixels);
@@ -50,7 +47,9 @@ fn main() {
 }
 
 fn color_enabled(cli_allows: bool) -> bool {
-    if !cli_allows { return false; }
+    if !cli_allows {
+        return false;
+    }
     // Respect NO_COLOR: https://no-color.org
     std::env::var_os("NO_COLOR").is_none()
 }
@@ -66,25 +65,47 @@ fn print_results_table(title: &str, rows: &[(&str, f64)], use_color: bool) {
     let style_title = |s: &str| {
         if use_color {
             #[cfg(feature = "color")]
-            { s.bold().to_string() }
+            {
+                s.bold().to_string()
+            }
             #[cfg(not(feature = "color"))]
-            { s.to_string() }
-        } else { s.to_string() }
+            {
+                s.to_string()
+            }
+        } else {
+            s.to_string()
+        }
     };
     let style_label = |s: &str| {
         if use_color {
             #[cfg(feature = "color")]
-            { s.bold().to_string() }
+            {
+                s.bold().to_string()
+            }
             #[cfg(not(feature = "color"))]
-            { s.to_string() }
-        } else { s.to_string() }
+            {
+                s.to_string()
+            }
+        } else {
+            s.to_string()
+        }
     };
 
     println!("{}", hr('═'));
-    println!("║ {:^width$} ║", style_title(title), width = label_width + 3 + num_width);
+    println!(
+        "║ {:^width$} ║",
+        style_title(title),
+        width = label_width + 3 + num_width
+    );
     println!("{}", hr('─'));
 
-    println!("║ {:<lw$} │ {:>nw$} ║", "Metric", "Value (m)", lw = label_width, nw = num_width);
+    println!(
+        "║ {:<lw$} │ {:>nw$} ║",
+        "Metric",
+        "Value (m)",
+        lw = label_width,
+        nw = num_width
+    );
     println!("{}", hr('─'));
 
     for (label, value) in rows {
