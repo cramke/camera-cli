@@ -40,43 +40,15 @@ jobs:
       with:
         node-version: '20'
         
-    - name: Install semantic-release
-      run: |
-        npm install -g semantic-release @semantic-release/git @semantic-release/github @semantic-release/exec @semantic-release/changelog
+    - name: Install dependencies
+      run: npm ci
         
     - name: Configure git
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         
-    - name: Create semantic-release config
-      run: |
-        cat > .releaserc.json << 'EOF'
-        {
-          "branches": ["main"],
-          "plugins": [
-            "@semantic-release/commit-analyzer",
-            "@semantic-release/release-notes-generator",
-            "@semantic-release/changelog",
-            [
-              "@semantic-release/exec",
-              {
-                "prepareCmd": "sed -i 's/^version = \".*\"/version = \"${nextRelease.version}\"/' Cargo.toml && cargo check"
-              }
-            ],
-            [
-              "@semantic-release/git",
-              {
-                "assets": ["Cargo.toml", "Cargo.lock", "CHANGELOG.md"],
-                "message": "chore(release): ${nextRelease.version} [skip ci]"
-              }
-            ],
-            "@semantic-release/github"
-          ]
-        }
-        EOF
-        
     - name: Run semantic-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: semantic-release
+      run: npx semantic-release
