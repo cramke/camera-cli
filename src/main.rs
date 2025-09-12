@@ -15,19 +15,82 @@ struct Args {
     /// Working Distance in meters
     #[arg(short, long)]
     distance: Option<f32>,
+
+    #[arg(long)]
+    no_color: bool,
 }
 
 fn main() {
-    let args: Args = Args::parse();
+    let args = Args::parse();
 
     if let (Some(pixels), Some(angle), Some(_distance)) = (args.pixels, args.angle, args.distance) {
-        let detection_distance = camera::detection_distance(angle, pixels);
-        println!("Detection Distance: {:.2}", detection_distance);
-        let identification_distance = camera::identification_distance(angle, pixels);
-        println!("Identification Distance: {:.2}", identification_distance);
-        let recognition_distance = camera::recognition_distance(angle, pixels);
-        println!("Recognition Distance: {:.2}", recognition_distance);
+        let detection = camera::detection_distance(angle, pixels);
+        let identification = camera::identification_distance(angle, pixels);
+        let recognition = camera::recognition_distance(angle, pixels);
+
+        print_results_table(
+            "Camera Ranges",
+            &[
+                ("Detection", detection.into()),
+                ("Identification", identification.into()),
+                ("Recognition", recognition.into()),
+            ],
+            /* use_color = */ color_enabled(!args.no_color),
+        );
     } else {
-        println!("Please provide angle, distance, and pixels to calculate spatial resolution.");
+        eprintln!(
+            "Please provide --angle, --distance, and --pixels to calculate spatial resolution."
+        );
+        // (Optional) print a short usage hint
+        eprintln!("Example: mytool --angle 60 --distance 30 --pixels 1200");
     }
+}
+
+fn color_enabled(cli_allows: bool) -> bool {
+    if !cli_allows {
+        return false;
+    }
+    // Respect NO_COLOR: https://no-color.org
+    std::env::var_os("NO_COLOR").is_none()
+}
+
+fn print_results_table(title: &str, rows: &[(&str, f64)], _use_color: bool) {
+    let label_width = rows.iter().map(|(l, _)| l.len()).max().unwrap_or(8).max(10);
+    let num_width = 12; // room for digits + decimals + unit
+    let total_width = 2 + label_width + 3 + num_width + 2; // borders + padding
+
+    let hr = |ch: char| -> String { std::iter::repeat_n(ch, total_width).collect() };
+
+    // Optional color helpers
+    let style_title = |s: &str| s.to_string();
+    let style_label = |s: &str| s.to_string();
+
+    println!("{}", hr('═'));
+    println!(
+        "║ {:^width$} ║",
+        style_title(title),
+        width = label_width + 3 + num_width
+    );
+    println!("{}", hr('─'));
+
+    println!(
+        "║ {:<lw$} │ {:>nw$} ║",
+        "Metric",
+        "Value (m)",
+        lw = label_width,
+        nw = num_width
+    );
+    println!("{}", hr('─'));
+
+    for (label, value) in rows {
+        println!(
+            "║ {:<lw$} │ {:>nw$.2} ║",
+            style_label(label),
+            value,
+            lw = label_width,
+            nw = num_width
+        );
+    }
+
+    println!("{}", hr('═'));
 }
