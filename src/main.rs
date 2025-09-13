@@ -1,4 +1,5 @@
 use clap::Parser;
+use comfy_table::{ContentArrangement, Table, presets::UTF8_FULL};
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -21,76 +22,53 @@ struct Args {
 }
 
 fn main() {
-    let args = Args::parse();
+    let args: Args = Args::parse();
 
-    if let (Some(pixels), Some(angle), Some(_distance)) = (args.pixels, args.angle, args.distance) {
-        let detection = camera::detection_distance(angle, pixels);
-        let identification = camera::identification_distance(angle, pixels);
-        let recognition = camera::recognition_distance(angle, pixels);
+    if let (Some(pixels), Some(angle)) = (args.pixels, args.angle) {
+        let detection_distance = camera::detection_distance(angle, pixels);
+        let identification_distance = camera::identification_distance(angle, pixels);
+        let recognition_distance = camera::recognition_distance(angle, pixels);
 
-        print_results_table(
-            "Camera Ranges",
-            &[
-                ("Detection", detection.into()),
-                ("Identification", identification.into()),
-                ("Recognition", recognition.into()),
-            ],
-            /* use_color = */ color_enabled(!args.no_color),
-        );
+        let mut table = Table::new();
+        table
+            .load_preset(UTF8_FULL) // pretty borders
+            .set_content_arrangement(ContentArrangement::Dynamic)
+            .set_header(vec!["Metric", "Value (m)"]);
+
+        table.add_row(vec![
+            "Detection (25 ppm)",
+            &format!("{:.2}", detection_distance),
+        ]);
+        table.add_row(vec![
+            "Recognition (125 ppm)",
+            &format!("{:.2}", recognition_distance),
+        ]);
+        table.add_row(vec![
+            "Identification (250 ppm)",
+            &format!("{:.2}", identification_distance),
+        ]);
+
+        println!("{table}");
     } else {
         eprintln!(
             "Please provide --angle, --distance, and --pixels to calculate spatial resolution."
         );
-        // (Optional) print a short usage hint
         eprintln!("Example: mytool --angle 60 --distance 30 --pixels 1200");
     }
-}
 
-fn color_enabled(cli_allows: bool) -> bool {
-    if !cli_allows {
-        return false;
+    println!("\n");
+
+    if let (Some(pixels), Some(angle), Some(distance)) = (args.pixels, args.angle, args.distance) {
+        let spatial_resolution: f32 = camera::spatial::spatial_resolution(angle, pixels, distance);
+        let mut table = Table::new();
+        table
+            .load_preset(UTF8_FULL) // pretty borders
+            .set_content_arrangement(ContentArrangement::Dynamic)
+            .set_header(vec!["Metric", "Value (ppm)"]);
+        table.add_row(vec![
+            "Spatial Resolution",
+            &format!("{:.2}", spatial_resolution),
+        ]);
+        println!("{table}");
     }
-    // Respect NO_COLOR: https://no-color.org
-    std::env::var_os("NO_COLOR").is_none()
-}
-
-fn print_results_table(title: &str, rows: &[(&str, f64)], _use_color: bool) {
-    let label_width = rows.iter().map(|(l, _)| l.len()).max().unwrap_or(8).max(10);
-    let num_width = 12; // room for digits + decimals + unit
-    let total_width = 2 + label_width + 3 + num_width + 2; // borders + padding
-
-    let hr = |ch: char| -> String { std::iter::repeat_n(ch, total_width).collect() };
-
-    // Optional color helpers
-    let style_title = |s: &str| s.to_string();
-    let style_label = |s: &str| s.to_string();
-
-    println!("{}", hr('═'));
-    println!(
-        "║ {:^width$} ║",
-        style_title(title),
-        width = label_width + 3 + num_width
-    );
-    println!("{}", hr('─'));
-
-    println!(
-        "║ {:<lw$} │ {:>nw$} ║",
-        "Metric",
-        "Value (m)",
-        lw = label_width,
-        nw = num_width
-    );
-    println!("{}", hr('─'));
-
-    for (label, value) in rows {
-        println!(
-            "║ {:<lw$} │ {:>nw$.2} ║",
-            style_label(label),
-            value,
-            lw = label_width,
-            nw = num_width
-        );
-    }
-
-    println!("{}", hr('═'));
 }

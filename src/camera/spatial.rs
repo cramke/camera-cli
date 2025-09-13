@@ -1,5 +1,5 @@
-pub fn spatial_resolution(angle: f32, pixels: u32, distance: f32) -> f32 {
-    let width: f32 = 2.0 * distance * (angle.to_radians() / 2.0).tan();
+pub fn spatial_resolution(hfov: f32, pixels: u32, distance: f32) -> f32 {
+    let width: f32 = 2.0 * distance * (hfov.to_radians() / 2.0).tan();
     pixels as f32 / width
 }
 
