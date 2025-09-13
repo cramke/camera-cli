@@ -2,6 +2,8 @@
 name = "camera-cli"
 version = "0.1.0"
 edition = "2024"
+description= "Camera CLI tool"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.5.47", features = ["derive"] }
@@ -10,3 +12,6 @@ comfy-table = "7"
 [lib]
 name = "camera"
 path = "src/camera/lib.rs"
+
+[package.metadata.deb]
+copyright = "cramke"
