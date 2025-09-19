@@ -20,6 +20,16 @@ pub fn identification_distance(hfov: f32, pixels: u32) -> f32 {
     spatial::distance_at_resolution(hfov, pixels, IDENTIFICATION_PPM)
 }
 
+pub fn focal_length_to_hfov(
+    focal_length_mm: f32,
+    working_distance_mm: f32,
+    sensor_width_mm: f32,
+) -> f32 {
+    let fov_spatial: f32 = sensor_width_mm * working_distance_mm / focal_length_mm;
+    let fov_angle: f32 = 2.0 * (fov_spatial / (2.0 * working_distance_mm)).atan();
+    fov_angle.to_degrees()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -78,6 +88,22 @@ mod tests {
         let expected = 0.6;
         assert!(
             (result - expected).abs() < 1e-6,
+            "Expected: {}, Got: {}",
+            expected,
+            result
+        );
+    }
+
+    #[test]
+    fn test_focal_length_conversion() {
+        let focal_length = 8.0; // mm
+        let working_distance = 200.0; // mm
+        let sensor_width = 2.0; // mm
+        let result = focal_length_to_hfov(focal_length, working_distance, sensor_width);
+        // Calculate expected value
+        let expected = 14.25; // degrees
+        assert!(
+            (result - expected).abs() < 1e-4,
             "Expected: {}, Got: {}",
             expected,
             result
