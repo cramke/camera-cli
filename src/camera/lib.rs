@@ -30,6 +30,11 @@ pub fn focal_length_to_hfov(
     fov_angle.to_degrees()
 }
 
+pub fn focal_length_to_opening_angle(focal_length_mm: f32, sensor_width_mm: f32) -> f32 {
+    let fov_angle: f32 = 2.0 * (sensor_width_mm / (2.0 * focal_length_mm)).atan();
+    fov_angle.to_degrees()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,6 +107,20 @@ mod tests {
         let result = focal_length_to_hfov(focal_length, working_distance, sensor_width);
         // Calculate expected value
         let expected = 14.25; // degrees
+        assert!(
+            (result - expected).abs() < 1e-4,
+            "Expected: {}, Got: {}",
+            expected,
+            result
+        );
+    }
+
+    #[test]
+    fn test_focal_length_to_opening_angle() {
+        let focal_length: f32 = 50.0; // mm
+        let sensor_width: f32 = 36.0; // mm
+        let result: f32 = focal_length_to_opening_angle(focal_length, sensor_width);
+        let expected: f32 = 39.59776; // degrees
         assert!(
             (result - expected).abs() < 1e-4,
             "Expected: {}, Got: {}",

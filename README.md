@@ -18,3 +18,8 @@ This repository uses an automated gitflow:
 4. Review and merge the auto-generated PR to deploy to main
 
 This ensures that only tested, properly formatted code reaches the main branch.
+
+### Examples
+```bash
+./target/debug/camera-cli -p 640 -f 4.9 -d 33
+```
